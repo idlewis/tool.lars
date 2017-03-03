@@ -1,4 +1,4 @@
-# LARS
+# LARS by Iain
 
 The Liberty Asset Repository Service implements a repository for
 Liberty features that you can deploy locally. You can host features
