@@ -70,6 +70,24 @@ public class WlpInformation extends AbstractJSON implements VersionableContent, 
     private String mainAttachmentSHA256;
     private String genericRequirements;
     private String packagedJava;
+    private Collection<RequireFeatureWithTolerates> requiredFeaturesWithTolerates;
+
+    // TODO need to fix up the equals and other methods
+
+    public Collection<RequireFeatureWithTolerates> getRequiredFeaturesWithTolerates() {
+        return requiredFeaturesWithTolerates;
+    }
+
+    public void setRequiredFeaturesWithTolerates(Collection<RequireFeatureWithTolerates> requiredFeaturesWithTolerates) {
+        this.requiredFeaturesWithTolerates = requiredFeaturesWithTolerates;
+    }
+
+    public void addRequiredFeaturesWithTolerates(RequireFeatureWithTolerates feature) {
+        if (this.requiredFeaturesWithTolerates == null) {
+            this.requiredFeaturesWithTolerates = new HashSet<RequireFeatureWithTolerates>();
+        }
+        this.requiredFeaturesWithTolerates.add(feature);
+    }
 
     public String getFeaturedWeight() {
         return featuredWeight;
@@ -692,8 +710,7 @@ public class WlpInformation extends AbstractJSON implements VersionableContent, 
     public void validate(String version) throws IllegalStateException, BadVersionException {
         float v = Float.valueOf(version);
         if (v < MIN_VERSION || v >= MAX_VERSION) {
-            throw new BadVersionException(Float.toString(MIN_VERSION),
-                            Float.toString(MAX_VERSION), version);
+            throw new BadVersionException(Float.toString(MIN_VERSION), Float.toString(MAX_VERSION), version);
         }
     }
 
