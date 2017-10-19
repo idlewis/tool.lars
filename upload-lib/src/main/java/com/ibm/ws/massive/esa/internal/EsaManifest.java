@@ -55,8 +55,7 @@ public class EsaManifest {
      * @throws ZipException
      * @throws IOException
      */
-    public static EsaManifest constructInstance(File esa)
-            throws ZipException, IOException {
+    public static EsaManifest constructInstance(File esa) throws ZipException, IOException {
         // Find the manifest - case isn't guaranteed so do a search
         ZipFile zip = new ZipFile(esa);
         Enumeration<? extends ZipEntry> zipEntries = zip.entries();
@@ -67,8 +66,7 @@ public class EsaManifest {
                 subsystemEntry = nextEntry;
             }
         }
-        return new EsaManifest(
-                zip.getInputStream(subsystemEntry), zip);
+        return new EsaManifest(zip.getInputStream(subsystemEntry), zip);
     }
 
     private final ZipFile esa;
@@ -105,11 +103,11 @@ public class EsaManifest {
         }
 
         ZipEntry[] entries = new ZipEntry[] {
-                                             this.esa.getEntry(localizationLocation + "_"
-                                                               + locale.toString() + ".properties"),
-                                             this.esa.getEntry(localizationLocation + "_"
-                                                               + locale.getLanguage() + ".properties"),
-                                             this.esa.getEntry(localizationLocation + ".properties") };
+                                              this.esa.getEntry(localizationLocation + "_"
+                                                                + locale.toString() + ".properties"),
+                                              this.esa.getEntry(localizationLocation + "_"
+                                                                + locale.getLanguage() + ".properties"),
+                                              this.esa.getEntry(localizationLocation + ".properties") };
 
         for (ZipEntry entry : entries) {
             if (entry != null) {

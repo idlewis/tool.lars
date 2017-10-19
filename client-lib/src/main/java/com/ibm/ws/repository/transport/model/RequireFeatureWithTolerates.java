@@ -20,6 +20,40 @@ import java.util.HashSet;
 
 public class RequireFeatureWithTolerates {
 
+    /** {@inheritDoc} */
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((feature == null) ? 0 : feature.hashCode());
+        result = prime * result + ((tolerates == null) ? 0 : tolerates.hashCode());
+        return result;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        RequireFeatureWithTolerates other = (RequireFeatureWithTolerates) obj;
+        if (feature == null) {
+            if (other.feature != null)
+                return false;
+        } else if (!feature.equals(other.feature))
+            return false;
+
+        if (tolerates == null) {
+            if (other.tolerates != null)
+                return false;
+        } else if (!tolerates.equals(other.tolerates))
+            return false;
+        return true;
+    }
+
     private String feature;
     private Collection<String> tolerates;
 

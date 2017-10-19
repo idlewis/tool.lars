@@ -19,7 +19,11 @@ package com.ibm.ws.repository.resources.internal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 import com.ibm.ws.repository.common.enums.DisplayPolicy;
 import com.ibm.ws.repository.common.enums.DownloadPolicy;
@@ -37,6 +41,7 @@ import com.ibm.ws.repository.resources.writeable.EsaResourceWritable;
 import com.ibm.ws.repository.transport.model.AppliesToFilterInfo;
 import com.ibm.ws.repository.transport.model.Asset;
 import com.ibm.ws.repository.transport.model.JavaSEVersionRequirements;
+import com.ibm.ws.repository.transport.model.RequireFeatureWithTolerates;
 import com.ibm.ws.repository.transport.model.WlpInformation;
 
 public class EsaResourceImpl extends RepositoryResourceImpl implements EsaResourceWritable {
@@ -433,6 +438,46 @@ public class EsaResourceImpl extends RepositoryResourceImpl implements EsaResour
 
     /** {@inheritDoc} */
     @Override
+    public void addRequireFeatureWithTolerates(String feature, Collection<String> tolerates) {
+        // TODO need to copy from the old field first if it exists
+        copyStuff();
+        // now things are in sync. Need to add to both
+        _asset.getWlpInformation().addRequireFeature(feature);
+        RequireFeatureWithTolerates newFeature = new RequireFeatureWithTolerates();
+        newFeature.setFeature(feature);
+        newFeature.setTolerates(tolerates);
+        _asset.getWlpInformation().addRequiredFeaturesWithTolerates(newFeature);
+    }
+
+    private void copyStuff() {
+        // If the new one exists, then the old one must exist
+        // if neither exist, create both?
+        // if the old one exists, create the new one
+        Collection<RequireFeatureWithTolerates> bar = _asset.getWlpInformation().getRequiredFeaturesWithTolerates();
+        if (bar != null) {
+            // the new one exists, nothing to do
+            return;
+        }
+
+        Collection<String> baz = _asset.getWlpInformation().getRequireFeature();
+        if (baz == null) {
+            // TODO should we create?
+            return;
+        }
+
+        // We have the old one but not the new one, need to do a copy.
+        Collection<RequireFeatureWithTolerates> newOne = new HashSet<RequireFeatureWithTolerates>();
+        for (String feature : baz) {
+            RequireFeatureWithTolerates newFeature = new RequireFeatureWithTolerates();
+            newFeature.setFeature(feature);
+            newFeature.setTolerates(Collections.<String> emptyList());
+            newOne.add(newFeature);
+        }
+        _asset.getWlpInformation().setRequiredFeaturesWithTolerates(newOne);
+    }
+
+    /** {@inheritDoc} */
+    @Override
     public void addRequireFix(String fix) {
         _asset.getWlpInformation().addRequireFix(fix);
     }
@@ -446,13 +491,75 @@ public class EsaResourceImpl extends RepositoryResourceImpl implements EsaResour
     /** {@inheritDoc} */
     @Override
     public void setRequireFeature(Collection<String> feats) {
+        // No need to copy (like we do in addRequireFeatureWithTolerates)
+        // as we are overwriting anyway
+        // It would be nice if this delegated to setRequireFeatureWithTolerates, but that
+        // would require an awful lot of data munging with little benefit, and this method
+        // is deprecated and going away anyway.
+        Collection<RequireFeatureWithTolerates> set = new HashSet<RequireFeatureWithTolerates>();
+        for (String foo : feats) {
+            RequireFeatureWithTolerates feature = new RequireFeatureWithTolerates();
+            feature.setFeature(foo);
+            feature.setTolerates(Collections.<String> emptySet());
+            set.add(feature);
+        }
+        _asset.getWlpInformation().setRequiredFeaturesWithTolerates(set);
         _asset.getWlpInformation().setRequireFeature(feats);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public void setRequireFeatureWithTolerates(Map<String, Collection<String>> features) {
+        // No need to copy (like we do in addRequireFeatureWithTolerates)
+        // as we are overwriting anyway
+        Collection<RequireFeatureWithTolerates> set = new HashSet<RequireFeatureWithTolerates>();
+        Collection<String> collection = new HashSet<String>();
+        for (Map.Entry<String, Collection<String>> foo : features.entrySet()) {
+            RequireFeatureWithTolerates feature = new RequireFeatureWithTolerates();
+            feature.setFeature(foo.getKey());
+            feature.setTolerates(foo.getValue());
+            set.add(feature);
+
+            collection.add(foo.getKey());
+        }
+        _asset.getWlpInformation().setRequiredFeaturesWithTolerates(set);
+        _asset.getWlpInformation().setRequireFeature(collection);
     }
 
     /** {@inheritDoc} */
     @Override
     public Collection<String> getRequireFeature() {
         return _asset.getWlpInformation().getRequireFeature();
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public Map<String, Collection<String>> getRequireFeatureWithTolerates() {
+        // The feature may be an older feature which never had the tolerates information
+        // stored, in which case, look in the older requireFeature field and massage
+        // that info into the required format.
+        // Or there may just not be any required features at all.
+        Collection<RequireFeatureWithTolerates> rfwt = _asset.getWlpInformation().getRequiredFeaturesWithTolerates();
+        if (rfwt != null) {
+            Map<String, Collection<String>> rv = new HashMap<String, Collection<String>>();
+            for (RequireFeatureWithTolerates feature : rfwt) {
+                rv.put(feature.getFeature(), feature.getTolerates());
+            }
+            return rv;
+        }
+
+        // Newer field not present, check the older field
+        Collection<String> rf = _asset.getWlpInformation().getRequireFeature();
+        if (rf != null) {
+            Map<String, Collection<String>> rv = new HashMap<String, Collection<String>>();
+            for (String feature : rf) {
+                rv.put(feature, Collections.<String> emptyList());
+            }
+            return rv;
+        }
+
+        // No required features at all
+        return null;
     }
 
     /** {@inheritDoc} */
