@@ -433,41 +433,56 @@ public class EsaResourceImpl extends RepositoryResourceImpl implements EsaResour
     /** {@inheritDoc} */
     @Override
     public void addRequireFeature(String requiredFeatureSymbolicName) {
+        copyRequireFeatureToRequireFeatureWithTolerates();
+        // Add to the old field without tolerates info
         _asset.getWlpInformation().addRequireFeature(requiredFeatureSymbolicName);
+        // Add to the new field with empty tolerates info
+        RequireFeatureWithTolerates newFeature = new RequireFeatureWithTolerates();
+        newFeature.setFeature(requiredFeatureSymbolicName);
+        newFeature.setTolerates(Collections.<String> emptySet());
+        _asset.getWlpInformation().addRequiredFeaturesWithTolerates(newFeature);
     }
 
     /** {@inheritDoc} */
     @Override
     public void addRequireFeatureWithTolerates(String feature, Collection<String> tolerates) {
-        // TODO need to copy from the old field first if it exists
-        copyStuff();
-        // now things are in sync. Need to add to both
+        copyRequireFeatureToRequireFeatureWithTolerates();
+        // add just the feature info to the old field
         _asset.getWlpInformation().addRequireFeature(feature);
+        // Add to the new field including tolerates info.
         RequireFeatureWithTolerates newFeature = new RequireFeatureWithTolerates();
         newFeature.setFeature(feature);
         newFeature.setTolerates(tolerates);
         _asset.getWlpInformation().addRequiredFeaturesWithTolerates(newFeature);
     }
 
-    private void copyStuff() {
-        // If the new one exists, then the old one must exist
-        // if neither exist, create both?
-        // if the old one exists, create the new one
-        Collection<RequireFeatureWithTolerates> bar = _asset.getWlpInformation().getRequiredFeaturesWithTolerates();
-        if (bar != null) {
-            // the new one exists, nothing to do
+    /**
+     * requireFeature was the old field in the asset which didn't contain tolerates information.
+     * The new field is requireFeatureWithTolerates, and for the moment, both fields are being
+     * maintained, as older assets in the repository will only have the older field. When older assets
+     * are being written to, the data from the older field needs to be copied to the new field, to ensure
+     * both are consistent.
+     * The write will then write to both fields
+     */
+    private void copyRequireFeatureToRequireFeatureWithTolerates() {
+        Collection<RequireFeatureWithTolerates> rfwt = _asset.getWlpInformation().getRequiredFeaturesWithTolerates();
+        if (rfwt != null) {
+            // Both fields (with and without tolerates) should exist, as
+            // rfwt should not be created unless the other field is created first.
+            // No need to copy, as the two fields should always be in sync
             return;
         }
 
-        Collection<String> baz = _asset.getWlpInformation().getRequireFeature();
-        if (baz == null) {
-            // TODO should we create?
+        Collection<String> requireFeature = _asset.getWlpInformation().getRequireFeature();
+        if (requireFeature == null) {
+            // Neither field exists, no need to copy
             return;
         }
 
-        // We have the old one but not the new one, need to do a copy.
+        // We have the requireFeature field but not rfwt, so copy info into
+        // the new field (rfwt).
         Collection<RequireFeatureWithTolerates> newOne = new HashSet<RequireFeatureWithTolerates>();
-        for (String feature : baz) {
+        for (String feature : requireFeature) {
             RequireFeatureWithTolerates newFeature = new RequireFeatureWithTolerates();
             newFeature.setFeature(feature);
             newFeature.setTolerates(Collections.<String> emptyList());
