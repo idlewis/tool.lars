@@ -703,6 +703,14 @@ public class WlpInformation extends AbstractJSON implements VersionableContent, 
             return false;
         }
 
+        if (requiredFeaturesWithTolerates == null) {
+            if (other.requiredFeaturesWithTolerates != null) {
+                return false;
+            }
+        } else if (!requiredFeaturesWithTolerates.equals(other.requiredFeaturesWithTolerates)) {
+            return false;
+        }
+
         return true;
     }
 
