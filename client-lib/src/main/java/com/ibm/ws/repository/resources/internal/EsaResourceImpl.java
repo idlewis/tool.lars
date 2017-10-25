@@ -392,6 +392,7 @@ public class EsaResourceImpl extends RepositoryResourceImpl implements EsaResour
         setProvideFeature(esaRes.getProvideFeature());
         setProvisionCapability(esaRes.getProvisionCapability());
         setRequireFeature(esaRes.getRequireFeature());
+        setRequireFeatureWithTolerates(esaRes.getRequireFeatureWithTolerates());
         setVisibility(esaRes.getVisibility());
         setShortName(esaRes.getShortName());
         setVanityURL(esaRes.getVanityURL());
