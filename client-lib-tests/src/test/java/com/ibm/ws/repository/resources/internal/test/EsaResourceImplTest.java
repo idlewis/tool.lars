@@ -32,10 +32,8 @@ import com.ibm.ws.repository.transport.model.WlpInformation;
 
 public class EsaResourceImplTest {
 
-    // TODO not sure how to test that the case of an old asset with pre-existing
-    // requireFeature info.
     @Test
-    public void testStuff() {
+    public void testAddAndSetRequireFeature() {
         EsaResourceImpl toTest = new EsaResourceImpl(null);
 
         // Test adding an 'old' style requireFeature
