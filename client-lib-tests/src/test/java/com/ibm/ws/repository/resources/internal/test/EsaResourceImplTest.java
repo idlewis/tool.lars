@@ -19,6 +19,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
@@ -26,6 +27,8 @@ import java.util.Map;
 import org.junit.Test;
 
 import com.ibm.ws.repository.resources.internal.EsaResourceImpl;
+import com.ibm.ws.repository.transport.model.Asset;
+import com.ibm.ws.repository.transport.model.WlpInformation;
 
 public class EsaResourceImplTest {
 
@@ -88,5 +91,55 @@ public class EsaResourceImplTest {
         assertNotNull("There should have been some tolerates", tolerates4);
         assertTrue("tolerates4 didn't contain the 'tolerated4' feature", tolerates4.contains("tolerated4"));
 
+    }
+
+    @Test
+    public void testCopyRequireFeatureField() {
+        Asset asset = new Asset();
+        WlpInformation wlp = new WlpInformation();
+        ArrayList<String> required = new ArrayList<String>();
+        required.add("la di dah");
+        wlp.setRequireFeature(required);
+        asset.setWlpInformation(wlp);
+        EsaResourceImpl esa = new EsaResourceImpl(null, asset);
+        Collection<String> features = esa.getRequireFeature();
+        assertEquals("wrong size", 1, features.size());
+
+        // If a new require feature is added, the requireFeatureWithTolerates field
+        // should also be updated.
+        esa.addRequireFeature("a new feature");
+        Collection<String> features2 = esa.getRequireFeature();
+        assertEquals("Wrong number of features", 2, features2.size());
+        assertTrue("features2 didn't contain the expected feature", features2.contains("a new feature"));
+        Map<String, Collection<String>> rfwt2 = esa.getRequireFeatureWithTolerates();
+        assertEquals("Wrong number of features", 2, rfwt2.size());
+        assertNotNull("The expected feature was not found", rfwt2.get("a new feature"));
+        assertNotNull("The expected feature was not found", rfwt2.get("la di dah"));
+    }
+
+    @Test
+    public void testCopyRequireFeatureField2() {
+        // This time testing by adding requirement via the addRequireFeatureWithTolerates method
+        Asset asset = new Asset();
+        WlpInformation wlp = new WlpInformation();
+        ArrayList<String> required = new ArrayList<String>();
+        required.add("la di dah");
+        wlp.setRequireFeature(required);
+        asset.setWlpInformation(wlp);
+        EsaResourceImpl esa = new EsaResourceImpl(null, asset);
+        Collection<String> features = esa.getRequireFeature();
+        assertEquals("wrong size", 1, features.size());
+
+        // If a new require feature is added, the requireFeatureWithTolerates field
+        // should also be updated.
+        esa.addRequireFeatureWithTolerates("a new feature", Collections.singleton("tolerated"));
+        Collection<String> features2 = esa.getRequireFeature();
+        assertEquals("Wrong number of features", 2, features2.size());
+        assertTrue("features2 didn't contain the expected feature", features2.contains("a new feature"));
+        Map<String, Collection<String>> rfwt2 = esa.getRequireFeatureWithTolerates();
+        assertEquals("Wrong number of features", 2, rfwt2.size());
+        assertNotNull("The expected feature was not found", rfwt2.get("la di dah"));
+        Collection<String> tolerates2 = rfwt2.get("a new feature");
+        assertTrue("The expected tolerate was not found", tolerates2.contains("tolerated"));
     }
 }
